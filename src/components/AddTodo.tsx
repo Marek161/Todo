@@ -10,11 +10,8 @@ export default function AddTodo() {
 
   const handleAddTodo = (title: string, description: string) => {
     addTodo({
-      id: Date.now().toString(),
       title,
       description,
-      completed: false,
-      createdAt: new Date().toISOString(),
     });
     setIsFormOpen(false);
   };

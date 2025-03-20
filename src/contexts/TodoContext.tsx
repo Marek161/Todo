@@ -13,7 +13,7 @@ import {
   doc,
   getDocs,
 } from "firebase/firestore";
-import { db } from "@/utils/firebase";
+import { db } from "../utils/firebase";
 import { useAuth } from "./AuthContext";
 
 /**

@@ -1,7 +1,7 @@
 \"use client";
 
 import React, { useState } from "react";
-import { Todo, useTodos } from "@/contexts/TodoContext";
+import { Todo, useTodos } from "../contexts/TodoContext";
 
 interface TodoItemProps {
   todo: Todo;

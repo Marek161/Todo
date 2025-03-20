@@ -1,5 +1,3 @@
-\"use client";
-
 import React, {
   createContext,
   useContext,
@@ -43,7 +41,9 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       document.documentElement.classList.toggle("dark", savedTheme === "dark");
     } else {
       // Jeśli nie, sprawdź preferencje systemowe
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      ).matches;
       setTheme(prefersDark ? "dark" : "light");
       document.documentElement.classList.toggle("dark", prefersDark);
     }
@@ -52,10 +52,10 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
-    
+
     // Zapisz preferencje w localStorage
     localStorage.setItem("theme", newTheme);
-    
+
     // Zastosuj klasę dark do elementu html
     document.documentElement.classList.toggle("dark");
   };

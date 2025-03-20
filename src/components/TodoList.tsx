@@ -1,7 +1,7 @@
 \"use client";
 
 import React from "react";
-import { useTodos } from "@/contexts/TodoContext";
+import { useTodos } from "../contexts/TodoContext";
 import TodoItem from "./TodoItem";
 import ErrorMessage from "./ErrorMessage";
 

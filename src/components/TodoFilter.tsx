@@ -1,7 +1,7 @@
 \"use client";
 
 import React from "react";
-import { useTodos, FilterType } from "@/contexts/TodoContext";
+import { useTodos, FilterType } from "../contexts/TodoContext";
 
 /**
  * Komponent filtrowania zadań

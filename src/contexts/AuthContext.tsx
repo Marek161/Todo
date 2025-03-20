@@ -16,7 +16,7 @@ import {
   signInWithEmailAndPassword,
   updateProfile,
 } from "firebase/auth";
-import { auth, googleProvider } from "@/utils/firebase";
+import { auth, googleProvider } from "../utils/firebase";
 
 interface AuthContextType {
   user: User | null;
@@ -118,7 +118,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (error: any) {
       console.error("Błąd logowania:", error);
-      if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password") {
+      if (
+        error.code === "auth/user-not-found" ||
+        error.code === "auth/wrong-password"
+      ) {
         setError("Nieprawidłowy email lub hasło");
       } else {
         setError("Wystąpił błąd podczas logowania");

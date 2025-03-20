@@ -11,7 +11,11 @@ export default function AuthForms() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { login, register, loginWithGoogle } = useAuth();
+  const {
+    signIn: login,
+    signUp: register,
+    signInWithGoogle: loginWithGoogle,
+  } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
