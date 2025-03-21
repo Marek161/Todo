@@ -10,15 +10,20 @@
 }
 
 :root {
-  --foreground-rgb: 15, 23, 42;
-  --background-start-rgb: 248, 250, 252;
-  --background-end-rgb: 241, 245, 249;
+  --foreground-rgb: 0, 0, 0;
+  --background-rgb: 255, 255, 255;
 }
 
-.dark {
-  --foreground-rgb: 226, 232, 240;
-  --background-start-rgb: 15, 23, 42;
-  --background-end-rgb: 30, 41, 59;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-rgb: 17, 24, 39;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background-color: rgb(var(--background-rgb));
 }
 
 @layer base {
@@ -240,8 +245,8 @@
   }
 
   .input {
-    @apply block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm 
-      focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white;
+    @apply outline-none border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 shadow-sm 
+    focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-white;
   }
 
   /* Nowe style dla kart z gradientowymi obramowaniami */

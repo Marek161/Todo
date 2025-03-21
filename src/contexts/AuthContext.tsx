@@ -8,178 +8,124 @@ import React, {
   ReactNode,
 } from "react";
 import {
-  User,
-  signInWithPopup,
-  signOut as firebaseSignOut,
   onAuthStateChanged,
-  createUserWithEmailAndPassword,
+  User,
   signInWithEmailAndPassword,
-  AuthError,
-  UserCredential,
+  createUserWithEmailAndPassword,
   GoogleAuthProvider,
-  sendPasswordResetEmail,
+  signInWithPopup,
+  signOut as authSignOut,
 } from "firebase/auth";
-import { auth, googleProvider } from "@/lib/firebase";
+import { auth } from "@/lib/firebase";
 
-export interface AuthContextType {
+// Interfejs dla kontekstu uwierzytelniania
+interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: string | null;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<UserCredential>;
-  signOut: () => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
-  handleAuthError: (error: unknown) => string;
-  signUpWithEmail: (email: string, password: string) => Promise<UserCredential>;
+  signUp: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  clearError: () => void;
 }
 
+// Utworzenie kontekstu
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth musi być używany wewnątrz AuthProvider");
-  }
-  return context;
-};
-
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+// Provider dla kontekstu uwierzytelniania
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Monitorowanie stanu uwierzytelnienia
+  // Obserwuj zmiany statusu uwierzytelniania
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
       setLoading(false);
-      console.log(
-        "AuthContext - zmiana stanu uwierzytelnienia:",
-        user ? `zalogowany (${user.email})` : "niezalogowany"
-      );
     });
 
     return () => unsubscribe();
   }, []);
 
-  /**
-   * Logowanie za pomocą emaila i hasła
-   */
-  const signIn = async (email: string, password: string) => {
+  // Logowanie przez email i hasło
+  const signInWithEmail = async (email: string, password: string) => {
     try {
+      setError(null);
       await signInWithEmailAndPassword(auth, email, password);
-    } catch (error) {
-      console.error("Błąd logowania:", error);
-      setError(handleAuthError(error));
-      throw error;
-    }
-  };
-
-  /**
-   * Rejestracja za pomocą emaila i hasła
-   */
-  const signUp = async (
-    email: string,
-    password: string
-  ): Promise<UserCredential> => {
-    try {
-      const result = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
+    } catch (error: any) {
+      setError(
+        error.code === "auth/invalid-credential"
+          ? "Niepoprawny email lub hasło."
+          : "Wystąpił błąd podczas logowania. Spróbuj ponownie."
       );
-      return result;
-    } catch (error) {
-      console.error("Błąd rejestracji:", error);
-      setError(handleAuthError(error));
       throw error;
     }
   };
 
-  /**
-   * Wylogowanie
-   */
+  // Logowanie przez Google
+  const signInWithGoogle = async () => {
+    try {
+      setError(null);
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (error: any) {
+      setError("Wystąpił błąd podczas logowania przez Google.");
+      throw error;
+    }
+  };
+
+  // Tworzenie konta
+  const signUp = async (email: string, password: string) => {
+    try {
+      setError(null);
+      await createUserWithEmailAndPassword(auth, email, password);
+    } catch (error: any) {
+      if (error.code === "auth/email-already-in-use") {
+        setError("Ten adres email jest już używany.");
+      } else {
+        setError("Wystąpił błąd podczas tworzenia konta.");
+      }
+      throw error;
+    }
+  };
+
+  // Wylogowanie
   const signOut = async () => {
     try {
-      await firebaseSignOut(auth);
+      await authSignOut(auth);
     } catch (error) {
-      console.error("Błąd wylogowania:", error);
-      setError(handleAuthError(error));
+      setError("Wystąpił błąd podczas wylogowywania.");
       throw error;
     }
   };
 
-  /**
-   * Logowanie za pomocą Google
-   */
-  const signInWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (error) {
-      console.error("Błąd logowania przez Google:", error);
-      setError(handleAuthError(error));
-      throw error;
-    }
+  // Czyszczenie błędów
+  const clearError = () => {
+    setError(null);
   };
 
-  /**
-   * Resetowanie hasła
-   */
-  const resetPassword = async (email: string) => {
-    try {
-      await sendPasswordResetEmail(auth, email);
-    } catch (error) {
-      console.error("Błąd resetowania hasła:", error);
-      setError(handleAuthError(error));
-      throw error;
-    }
-  };
-
-  // Obsługa błędów uwierzytelniania
-  const handleAuthError = (error: unknown): string => {
-    const firebaseError = error as AuthError;
-    const errorCode = firebaseError.code;
-
-    switch (errorCode) {
-      case "auth/email-already-in-use":
-        return "Ten adres email jest już używany przez inne konto.";
-      case "auth/invalid-email":
-        return "Nieprawidłowy adres email.";
-      case "auth/user-disabled":
-        return "To konto zostało wyłączone.";
-      case "auth/user-not-found":
-        return "Nie znaleziono użytkownika z tym adresem email.";
-      case "auth/wrong-password":
-        return "Niepoprawne hasło.";
-      case "auth/weak-password":
-        return "Hasło jest za słabe. Użyj silniejszego hasła.";
-      case "auth/popup-closed-by-user":
-        return "Logowanie zostało przerwane. Spróbuj ponownie.";
-      case "auth/cancelled-popup-request":
-        return "Logowanie zostało przerwane. Spróbuj ponownie.";
-      case "auth/popup-blocked":
-        return "Okno logowania zostało zablokowane. Włącz wyskakujące okienka dla tej strony.";
-      default:
-        return "Wystąpił błąd podczas uwierzytelniania. Spróbuj ponownie później.";
-    }
-  };
-
+  // Wartość kontekstu
   const value = {
     user,
     loading,
     error,
-    signIn,
+    signInWithEmail,
+    signInWithGoogle,
     signUp,
     signOut,
-    signInWithGoogle,
-    resetPassword,
-    handleAuthError,
-    signUpWithEmail: signUp,
+    clearError,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+// Hook dla używania kontekstu uwierzytelniania
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth musi być używane wewnątrz AuthProvider");
+  }
+  return context;
 };

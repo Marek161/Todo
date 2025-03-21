@@ -1,11 +1,7 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { TodoProvider } from "@/contexts/TodoContext";
-import { ThemeProvider } from "@/contexts/ThemeContext";
-
-const inter = Inter({ subsets: ["latin"] });
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Todo App",
@@ -19,11 +15,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pl">
-      <body className={inter.className}>
+      <body>
         <AuthProvider>
-          <ThemeProvider>
-            <TodoProvider>{children}</TodoProvider>
-          </ThemeProvider>
+          <TodoProvider>{children}</TodoProvider>
         </AuthProvider>
       </body>
     </html>
