@@ -21,12 +21,6 @@ const nextConfig = {
     }
     return config;
   },
-
-  // Inne ustawienia, które mogą pomóc z uruchomieniem aplikacji
-  experimental: {
-    // Wyłącz aPPDir, jeśli powoduje problemy
-    appDir: true,
-  },
 };
 
 module.exports = nextConfig;
