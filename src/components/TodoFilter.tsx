@@ -2,72 +2,73 @@
 
 import React from "react";
 import { useTodos } from "@/contexts/TodoContext";
-import { FiList, FiCheck, FiClock, FiTag, FiFilter } from "react-icons/fi";
+import {
+  FiFilter,
+  FiTag,
+  FiCheck,
+  FiCheckCircle,
+  FiCircle,
+} from "react-icons/fi";
 
 /**
  * Komponent filtrowania zadań
  * Umożliwia filtrowanie zadań po statusie (wszystkie, aktywne, ukończone) oraz po etykietach
  */
 export const TodoFilter: React.FC = () => {
-  const { todos, filter, setFilter, tagFilter, setTagFilter, uniqueTags } =
-    useTodos();
-
-  /**
-   * Obsługuje zmianę filtra i aktualizuje stan w kontekście
-   */
-  const handleFilterChange = (filter: string) => {
-    setFilter(filter);
-  };
-
-  // Funkcja do generowania kolorów dla etykiet na podstawie ich nazwy
-  const getTagColor = (tag: string) => {
-    let hash = 0;
-    for (let i = 0; i < tag.length; i++) {
-      hash = tag.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const hue = hash % 360;
-    return `hsl(${hue}, 70%, 50%)`;
-  };
+  const { filter, setFilter, tagFilter, setTagFilter, uniqueTags } = useTodos();
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-      <div className="mb-4">
-        <div className="flex items-center mb-2 text-gray-700 dark:text-gray-300">
-          <FiFilter className="mr-2" />
-          <h3 className="font-medium">Filtruj według statusu</h3>
-        </div>
-        <div className="space-y-2">
+      <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4 flex items-center">
+        <FiFilter className="mr-2 text-indigo-500" />
+        Filtry zadań
+      </h3>
+
+      <div className="mb-5">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+          Status zadań
+        </label>
+
+        <div className="flex flex-wrap gap-2">
           <button
-            onClick={() => handleFilterChange("all")}
-            className={`w-full px-4 py-2 rounded-md text-left transition flex items-center ${
+            onClick={() => setFilter("all")}
+            className={`px-4 py-2 rounded-md text-sm font-medium flex items-center transition-all ${
               filter === "all"
-                ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white"
-                : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md"
+                : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 hover:border-purple-300 dark:hover:border-purple-500"
             }`}
           >
-            <FiList className="mr-2" />
+            <FiCheckCircle
+              className={`mr-2 ${filter === "all" ? "text-white" : "text-purple-500"}`}
+            />
             Wszystkie
           </button>
+
           <button
-            onClick={() => handleFilterChange("active")}
-            className={`w-full px-4 py-2 rounded-md text-left transition flex items-center ${
+            onClick={() => setFilter("active")}
+            className={`px-4 py-2 rounded-md text-sm font-medium flex items-center transition-all ${
               filter === "active"
-                ? "bg-gradient-to-r from-yellow-500 to-orange-600 text-white"
-                : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                ? "bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md"
+                : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500"
             }`}
           >
-            <FiClock className="mr-2" />
+            <FiCircle
+              className={`mr-2 ${filter === "active" ? "text-white" : "text-blue-500"}`}
+            />
             Aktywne
           </button>
+
           <button
-            onClick={() => handleFilterChange("completed")}
-            className={`w-full px-4 py-2 rounded-md text-left transition flex items-center ${
+            onClick={() => setFilter("completed")}
+            className={`px-4 py-2 rounded-md text-sm font-medium flex items-center transition-all ${
               filter === "completed"
-                ? "bg-gradient-to-r from-green-500 to-teal-600 text-white"
-                : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                ? "bg-gradient-to-r from-green-600 to-emerald-500 text-white shadow-md"
+                : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 hover:border-green-300 dark:hover:border-green-500"
             }`}
           >
-            <FiCheck className="mr-2" />
+            <FiCheck
+              className={`mr-2 ${filter === "completed" ? "text-white" : "text-green-500"}`}
+            />
             Ukończone
           </button>
         </div>
@@ -75,38 +76,35 @@ export const TodoFilter: React.FC = () => {
 
       {uniqueTags.length > 0 && (
         <div>
-          <div className="flex items-center mb-2 text-gray-700 dark:text-gray-300">
-            <FiTag className="mr-2" />
-            <h3 className="font-medium">Filtruj według etykiety</h3>
-          </div>
-          <div className="flex flex-wrap gap-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center">
+            <FiTag className="mr-2 text-pink-500" />
+            Etykiety
+          </label>
+          <div className="flex flex-wrap gap-2 mt-1">
+            <button
+              onClick={() => setTagFilter(null)}
+              className={`px-3 py-1.5 text-xs rounded-full shadow-sm transition-all ${
+                tagFilter === null
+                  ? "bg-gradient-to-r from-pink-600 to-purple-600 text-white"
+                  : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
+              }`}
+            >
+              Wszystkie
+            </button>
+
             {uniqueTags.map((tag) => (
               <button
                 key={tag}
-                onClick={() => setTagFilter(tagFilter === tag ? null : tag)}
-                className={`px-2 py-1 rounded-md text-sm transition flex items-center ${
+                onClick={() => setTagFilter(tag)}
+                className={`px-3 py-1.5 text-xs rounded-full shadow-sm transition-all ${
                   tagFilter === tag
-                    ? "bg-opacity-100 text-white"
-                    : "bg-opacity-10 hover:bg-opacity-20"
+                    ? "bg-gradient-to-r from-pink-600 to-purple-600 text-white"
+                    : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
                 }`}
-                style={{
-                  backgroundColor:
-                    tagFilter === tag ? getTagColor(tag) : "transparent",
-                  color: tagFilter === tag ? "white" : getTagColor(tag),
-                  border: `1px solid ${getTagColor(tag)}`,
-                }}
               >
-                {tag}
+                #{tag}
               </button>
             ))}
-            {tagFilter && (
-              <button
-                onClick={() => setTagFilter(null)}
-                className="px-2 py-1 rounded-md text-sm bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition text-gray-700 dark:text-gray-300"
-              >
-                Wyczyść filtr
-              </button>
-            )}
           </div>
         </div>
       )}

@@ -2,10 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-
-  // Wyłączenie optymalizacji obrazów - może pomóc z problem CORS
   images: {
-    unoptimized: true,
     domains: ["firebasestorage.googleapis.com"],
   },
 

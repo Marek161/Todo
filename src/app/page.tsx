@@ -1,116 +1,106 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { FiLogIn, FiBookOpen, FiTag, FiCloud } from "react-icons/fi";
+import { FeatureCards } from "@/components/FeatureCards";
+import { FiLogIn, FiCheckCircle, FiClock, FiCheckSquare } from "react-icons/fi";
 import Navbar from "@/components/Navbar";
+import { useEffect, useState } from "react";
 
-export default function Home() {
-  const router = useRouter();
+export default function HomePage() {
   const { user } = useAuth();
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    // Uruchom animację po załadowaniu strony
+    setIsVisible(true);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden relative">
-      {/* Animowane elementy tła */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-b from-blue-400/30 to-purple-500/30 rounded-full filter blur-3xl opacity-50 animate-blob"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-t from-indigo-400/30 to-pink-500/30 rounded-full filter blur-3xl opacity-50 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-1/2 left-1/3 w-96 h-96 bg-gradient-to-tr from-green-400/30 to-blue-500/30 rounded-full filter blur-3xl opacity-50 animate-blob animation-delay-4000"></div>
-
-        {/* Dodatkowe animowane divy */}
-        <div className="absolute top-1/4 right-1/4 w-72 h-72 bg-gradient-to-bl from-pink-400/30 to-yellow-500/30 rounded-full filter blur-3xl opacity-40 animate-blob animation-delay-1000"></div>
-        <div className="absolute bottom-1/4 right-1/3 w-80 h-80 bg-gradient-to-tl from-purple-400/30 to-cyan-500/30 rounded-full filter blur-3xl opacity-40 animate-blob animation-delay-3000"></div>
-
-        {/* Poruszające się divy */}
-        <div className="absolute top-20 left-20 w-32 h-32 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-full opacity-70 animate-float"></div>
-        <div className="absolute top-1/2 right-24 w-24 h-24 bg-gradient-to-r from-blue-500/20 to-teal-500/20 rounded-full opacity-70 animate-float animation-delay-1000"></div>
-        <div className="absolute bottom-32 left-1/3 w-28 h-28 bg-gradient-to-r from-pink-500/20 to-red-500/20 rounded-full opacity-70 animate-float animation-delay-2000"></div>
-      </div>
-
-      {/* Navbar z logo, przełącznikiem motywu i przyciskiem logowania */}
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <Navbar />
 
-      {/* Główna treść strony */}
-      <main className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center mt-8 mb-12 relative">
-          {/* Animowany nagłówek z gradientem */}
-          <h1 className="text-5xl font-extrabold sm:text-6xl sm:tracking-tight mb-4 animate-fade-in">
-            <span className="block bg-gradient-to-r from-blue-600 via-purple-500 to-indigo-600 text-transparent bg-clip-text animate-gradient">
-              Zarządzaj swoimi zadaniami
-            </span>
-            <span className="block bg-gradient-to-r from-indigo-600 via-pink-500 to-blue-600 text-transparent bg-clip-text animate-gradient animation-delay-1000">
-              w jednym miejscu
-            </span>
-          </h1>
-          <p className="mt-5 max-w-xl mx-auto text-xl text-gray-600 dark:text-gray-300 animate-fade-in animation-delay-500">
-            Prosta, intuicyjna aplikacja do zarządzania zadaniami z etykietami,
-            filtrowaniem i synchronizacją w chmurze.
-          </p>
+      <main className="container mx-auto px-4 py-12">
+        {/* Hero section z animacjami */}
+        <div className="text-center mb-16">
+          <div
+            className={`transition-all duration-1000 ease-out transform ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-10"}`}
+          >
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-4">
+              <span className="bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent animate-gradient bg-300%">
+                Zarządzaj zadaniami z łatwością
+              </span>
+            </h1>
+            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-8">
+              Intuicyjna aplikacja do zarządzania zadaniami, która pomaga Ci być
+              zorganizowanym i produktywnym każdego dnia.
+            </p>
+          </div>
 
-          {/* Przycisk logowania */}
-          <div className="mt-12 mb-16 flex justify-center animate-fade-in animation-delay-1500">
-            {user ? (
-              <button
-                onClick={() => router.push("/dashboard")}
-                className="flex items-center px-6 py-3 text-lg font-medium rounded-xl bg-gradient-to-r from-green-500 via-teal-500 to-emerald-600 text-white hover:shadow-lg hover:shadow-green-500/30 dark:hover:shadow-green-600/20 transform hover:scale-105 transition-all duration-300 hover:animate-pulse"
-              >
-                Przejdź do panelu
-              </button>
-            ) : (
-              <button
-                onClick={() => router.push("/auth")}
-                className="flex items-center px-6 py-3 text-lg font-medium rounded-xl bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-600 text-white hover:shadow-lg hover:shadow-blue-500/50 dark:hover:shadow-blue-600/40 transform hover:scale-105 transition-all duration-300 hover:animate-pulse"
-              >
-                <FiLogIn className="mr-2" />
-                Zaloguj się
-              </button>
-            )}
+          <div
+            className={`transition-all duration-1000 delay-300 ease-out transform ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
+          >
+            <Link
+              href={user ? "/dashboard" : "/auth"}
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 focus:outline-none shadow-lg transform transition-all duration-200 hover:scale-105 animate-pulse-slow"
+            >
+              <FiLogIn className="mr-2" />
+              {user ? "Przejdź do panelu" : "Zaloguj się"}
+            </Link>
           </div>
         </div>
 
-        {/* Sekcja z trzema animowanymi divami */}
-        <div className="grid md:grid-cols-3 gap-8 mt-10 px-4 md:px-0">
-          <div className="relative snake-border snake-border-purple overflow-hidden">
-            <div className="snake-border snake-border-purple-glow"></div>
-            <div className="relative bg-white dark:bg-gray-800 p-6 h-full rounded-lg shadow-xl z-10">
-              <div className="flex items-center text-purple-600 dark:text-purple-400 mb-3">
-                <FiBookOpen size={22} className="mr-2" />
-                <h3 className="text-xl font-bold">Zarządzanie Zadaniami</h3>
+        {/* Animowane ikony zalet */}
+        <div className="max-w-4xl mx-auto mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: <FiCheckCircle className="text-green-500" size={24} />,
+                title: "Łatwe zarządzanie",
+                description: "Prosta i intuicyjna obsługa zadań",
+                delay: "delay-100",
+              },
+              {
+                icon: <FiClock className="text-blue-500" size={24} />,
+                title: "Oszczędność czasu",
+                description: "Szybkie dodawanie i zarządzanie zadaniami",
+                delay: "delay-300",
+              },
+              {
+                icon: <FiCheckSquare className="text-purple-500" size={24} />,
+                title: "Organizacja",
+                description: "Kategorie i filtry dla lepszej organizacji",
+                delay: "delay-500",
+              },
+            ].map((item, index) => (
+              <div
+                key={index}
+                className={`bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md transform transition-all duration-700 ${item.delay} ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
+              >
+                <div className="flex items-center mb-4">
+                  <div className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 mr-3 animate-float">
+                    {item.icon}
+                  </div>
+                  <h3 className="font-bold text-gray-800 dark:text-white">
+                    {item.title}
+                  </h3>
+                </div>
+                <p className="text-gray-600 dark:text-gray-300">
+                  {item.description}
+                </p>
               </div>
-              <p className="text-gray-700 dark:text-gray-300">
-                Łatwo organizuj swoje zadania, ustalaj priorytety i terminy
-                wykonania. Śledź postępy i oznaczaj ukończone zadania.
-              </p>
-            </div>
+            ))}
           </div>
+        </div>
 
-          <div className="relative snake-border snake-border-blue overflow-hidden">
-            <div className="snake-border snake-border-blue-glow"></div>
-            <div className="relative bg-white dark:bg-gray-800 p-6 h-full rounded-lg shadow-xl z-10">
-              <div className="flex items-center text-blue-600 dark:text-blue-400 mb-3">
-                <FiTag size={22} className="mr-2" />
-                <h3 className="text-xl font-bold">System Etykiet</h3>
-              </div>
-              <p className="text-gray-700 dark:text-gray-300">
-                Używaj kolorowych etykiet do kategoryzowania zadań. Twórz własne
-                etykiety dopasowane do Twoich potrzeb.
-              </p>
-            </div>
-          </div>
-
-          <div className="relative snake-border snake-border-red overflow-hidden">
-            <div className="snake-border snake-border-red-glow"></div>
-            <div className="relative bg-white dark:bg-gray-800 p-6 h-full rounded-lg shadow-xl z-10">
-              <div className="flex items-center text-red-600 dark:text-red-400 mb-3">
-                <FiCloud size={22} className="mr-2" />
-                <h3 className="text-xl font-bold">Synchronizacja w Chmurze</h3>
-              </div>
-              <p className="text-gray-700 dark:text-gray-300">
-                Dostęp do swoich zadań z dowolnego urządzenia. Twoje dane są
-                bezpiecznie przechowywane i synchronizowane w chmurze.
-              </p>
-            </div>
-          </div>
+        {/* Animowane karty funkcji */}
+        <div
+          className={`max-w-6xl mx-auto transition-all duration-1000 delay-500 ease-out transform ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-20"}`}
+        >
+          <h2 className="text-2xl font-bold text-center mb-8 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            Funkcje aplikacji
+          </h2>
+          <FeatureCards />
         </div>
       </main>
     </div>

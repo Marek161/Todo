@@ -99,6 +99,48 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo }) => {
     setEditedTags(tagsArray);
   };
 
+  // Generuje różne kolory dla tagów na podstawie ich nazwy
+  const getTagColors = (tag: string) => {
+    // Proste hashowanie tekstu do liczby
+    const hash = tag
+      .split("")
+      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
+    // Używamy modulo, aby uzyskać indeks z listy predefiniowanych kolorów
+    const colorSchemes = [
+      {
+        bg: "bg-purple-100 dark:bg-purple-900/30",
+        text: "text-purple-800 dark:text-purple-300",
+      },
+      {
+        bg: "bg-blue-100 dark:bg-blue-900/30",
+        text: "text-blue-800 dark:text-blue-300",
+      },
+      {
+        bg: "bg-emerald-100 dark:bg-emerald-900/30",
+        text: "text-emerald-800 dark:text-emerald-300",
+      },
+      {
+        bg: "bg-amber-100 dark:bg-amber-900/30",
+        text: "text-amber-800 dark:text-amber-300",
+      },
+      {
+        bg: "bg-pink-100 dark:bg-pink-900/30",
+        text: "text-pink-800 dark:text-pink-300",
+      },
+      {
+        bg: "bg-indigo-100 dark:bg-indigo-900/30",
+        text: "text-indigo-800 dark:text-indigo-300",
+      },
+      {
+        bg: "bg-teal-100 dark:bg-teal-900/30",
+        text: "text-teal-800 dark:text-teal-300",
+      },
+    ];
+
+    return colorSchemes[hash % colorSchemes.length];
+  };
+
   /**
    * Renderuje etykiety zadania jako wizualne znaczniki
    * Zwraca null, jeśli zadanie nie ma etykiet
@@ -107,16 +149,19 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo }) => {
     if (!todo.tags || todo.tags.length === 0) return null;
 
     return (
-      <div className="flex flex-wrap mt-1">
-        {todo.tags.map((tag, index) => (
-          <span
-            key={index}
-            className="mr-1 mb-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full"
-          >
-            <FiTag className="inline mr-1" size={12} />
-            {tag}
-          </span>
-        ))}
+      <div className="flex flex-wrap mt-2">
+        {todo.tags.map((tag, index) => {
+          const { bg, text } = getTagColors(tag);
+          return (
+            <span
+              key={index}
+              className={`mr-1.5 mb-1.5 px-2.5 py-1 text-xs ${bg} ${text} rounded-full flex items-center shadow-sm`}
+            >
+              <FiTag className="mr-1" size={10} />
+              {tag}
+            </span>
+          );
+        })}
       </div>
     );
   };
@@ -134,7 +179,7 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo }) => {
             type="text"
             value={editedText}
             onChange={(e) => setEditedText(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-gray-900"
           />
         </div>
         {/* Pole edycji etykiet */}
@@ -147,20 +192,20 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo }) => {
             value={tagsInput}
             onChange={handleTagsChange}
             placeholder="np. praca, dom, ważne"
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-gray-900"
           />
         </div>
         {/* Przyciski akcji edycji */}
         <div className="flex justify-end space-x-2">
           <button
             onClick={handleCancelEdit}
-            className="px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
             <FiX className="inline mr-1" /> Anuluj
           </button>
           <button
             onClick={handleSaveEdit}
-            className="px-3 py-1 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600"
+            className="px-3 py-1.5 text-sm bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-md hover:from-purple-700 hover:to-blue-700 transition-all shadow-sm"
           >
             <FiCheck className="inline mr-1" /> Zapisz
           </button>
@@ -174,25 +219,27 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo }) => {
     <div
       className={`p-4 border rounded-lg mb-3 shadow-sm ${
         todo.completed
-          ? "bg-gray-50 dark:bg-gray-900"
-          : "bg-white dark:bg-gray-800"
-      } border-gray-200 dark:border-gray-700 transition-colors`}
+          ? "bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700"
+          : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+      } transition-all hover:shadow`}
     >
       <div className="flex items-start">
         {/* Checkbox ukończenia zadania */}
-        <input
-          type="checkbox"
-          checked={todo.completed}
-          onChange={handleToggleComplete}
-          className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-        />
+        <div className="mt-0.5">
+          <input
+            type="checkbox"
+            checked={todo.completed}
+            onChange={handleToggleComplete}
+            className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded cursor-pointer"
+          />
+        </div>
         {/* Treść zadania */}
         <div className="ml-3 flex-1">
           <h3
-            className={`text-lg font-medium ${
+            className={`text-base font-medium ${
               todo.completed
                 ? "text-gray-500 dark:text-gray-400 line-through"
-                : "text-gray-900 dark:text-white"
+                : "text-gray-800 dark:text-white"
             }`}
           >
             {todo.text}
@@ -204,14 +251,14 @@ export const TodoItem: React.FC<TodoItemProps> = ({ todo }) => {
         <div className="ml-2 flex space-x-1">
           <button
             onClick={handleEditClick}
-            className="p-1 text-gray-400 hover:text-blue-500 rounded"
+            className="p-1.5 text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400 rounded transition-colors"
             aria-label="Edytuj zadanie"
           >
             <FiEdit size={18} />
           </button>
           <button
             onClick={handleDelete}
-            className="p-1 text-gray-400 hover:text-red-500 rounded"
+            className="p-1.5 text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 rounded transition-colors"
             aria-label="Usuń zadanie"
           >
             <FiTrash2 size={18} />

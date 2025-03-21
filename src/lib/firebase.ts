@@ -1,6 +1,6 @@
 "use client";
 
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
@@ -20,9 +20,8 @@ const firebaseConfig = {
 
 /**
  * Inicjalizacja aplikacji Firebase
- * Jeśli aplikacja już istnieje, używamy istniejącej instancji
  */
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const app = initializeApp(firebaseConfig);
 
 /**
  * Inicjalizacja usług Firebase potrzebnych w aplikacji

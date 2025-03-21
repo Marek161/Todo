@@ -15,7 +15,8 @@ export const FeatureCards = () => {
       ),
       title: "Zarządzanie zadaniami",
       description: "Twórz, edytuj i organizuj zadania szybko i efektywnie.",
-      gradient: "from-purple-500 via-indigo-500 to-blue-500",
+      borderClass: "snake-border-purple",
+      glowClass: "snake-border-purple-glow",
       textGradient: "from-purple-600 to-indigo-600",
       delay: "animation-delay-500",
     },
@@ -23,7 +24,8 @@ export const FeatureCards = () => {
       icon: <FiTag size={24} className="text-blue-500 dark:text-blue-400" />,
       title: "System etykiet",
       description: "Kategoryzuj zadania za pomocą kolorowych etykiet.",
-      gradient: "from-blue-500 via-cyan-500 to-teal-500",
+      borderClass: "snake-border-blue",
+      glowClass: "snake-border-blue-glow",
       textGradient: "from-blue-600 to-cyan-600",
       delay: "animation-delay-1000",
     },
@@ -31,7 +33,8 @@ export const FeatureCards = () => {
       icon: <FiCloud size={24} className="text-pink-500 dark:text-pink-400" />,
       title: "Synchronizacja",
       description: "Dostęp do zadań z dowolnego urządzenia i miejsca.",
-      gradient: "from-pink-500 via-red-500 to-orange-500",
+      borderClass: "snake-border-red",
+      glowClass: "snake-border-red-glow",
       textGradient: "from-pink-600 to-red-600",
       delay: "animation-delay-1500",
     },
@@ -42,18 +45,13 @@ export const FeatureCards = () => {
       {features.map((feature, index) => (
         <div
           key={index}
-          className={`relative rounded-xl overflow-hidden group animate-fade-in ${feature.delay}`}
+          className={`relative snake-border ${feature.borderClass} animate-fade-in ${feature.delay}`}
         >
-          {/* Animowany gradient na obramowaniu */}
-          <div
-            className={`absolute inset-0 bg-gradient-to-r ${feature.gradient} animate-gradient bg-300% rounded-xl opacity-70`}
-          ></div>
-
-          {/* Wewnętrzne tło */}
-          <div className="absolute inset-0 bg-white dark:bg-gray-800 m-[2px] rounded-[calc(0.75rem-2px)]"></div>
+          {/* Efekt poświaty */}
+          <div className={feature.glowClass}></div>
 
           {/* Zawartość karty */}
-          <div className="relative p-6 flex flex-col h-full z-10">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 relative z-10">
             <div className="flex items-center mb-4">
               <div className="p-2 rounded-full bg-gray-100 dark:bg-gray-700 mr-3 group-hover:scale-110 transition-transform">
                 {feature.icon}
@@ -69,7 +67,7 @@ export const FeatureCards = () => {
               {feature.description}
             </p>
 
-            <div className="mt-auto transform transition-all duration-300 group-hover:translate-y-0 translate-y-2 opacity-0 group-hover:opacity-100">
+            <div className="mt-auto">
               <ul className="space-y-1 text-sm">
                 {feature.title === "Zarządzanie zadaniami" && (
                   <>
