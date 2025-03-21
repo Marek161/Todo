@@ -1,208 +1,323 @@
-\"use client";
+"use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import {
   collection,
   query,
-  where,
-  orderBy,
-  onSnapshot,
   addDoc,
   updateDoc,
   deleteDoc,
   doc,
-  getDocs,
+  serverTimestamp,
+  where,
+  orderBy,
+  onSnapshot,
 } from "firebase/firestore";
-import { db } from "../utils/firebase";
+import { db } from "@/lib/firebase";
 import { useAuth } from "./AuthContext";
+import { v4 as uuidv4 } from "uuid";
 
 /**
  * Interfejs reprezentujący pojedyncze zadanie
  */
-interface Todo {
-  id: string;
-  title: string;
-  description?: string;
-  completed: boolean;
-  createdAt: Date;
-  userId: string;
-  tags?: string[];
+export interface Todo {
+  id: string; // Unikalny identyfikator zadania
+  text: string; // Tytuł zadania
+  completed: boolean; // Flaga oznaczająca czy zadanie jest ukończone
+  createdAt: any; // Timestamp utworzenia zadania
+  tags: string[]; // Lista etykiet przypisanych do zadania
+  userId: string; // Identyfikator użytkownika, do którego należy zadanie
 }
 
 /**
- * Interfejs reprezentujący nowe zadanie do dodania
+ * Interfejs reprezentujący nowe zadanie tworzone przez użytkownika
  */
-interface NewTodo {
-  title: string;
-  description?: string;
-  tags?: string[];
+export interface NewTodo {
+  text: string; // Tytuł nowego zadania
+  tags: string[]; // Lista etykiet dla nowego zadania
 }
 
-type FilterType = "all" | "active" | "completed";
+/**
+ * Typ definiujący możliwe filtry dla zadań
+ */
+export type FilterStatus = "all" | "active" | "completed";
 
-interface TodoContextType {
+/**
+ * Interfejs definiujący kontekst zarządzania zadaniami
+ */
+export interface TodoContextType {
   todos: Todo[];
   loading: boolean;
   error: string | null;
-  addTodo: (newTodo: NewTodo) => Promise<void>;
-  toggleComplete: (id: string) => Promise<void>;
-  updateTodo: (id: string, data: Partial<Todo>) => Promise<void>;
+  filter: string;
+  setFilter: (filter: string) => void;
+  tagFilter: string | null;
+  setTagFilter: (tag: string | null) => void;
+  addTodo: (newTodo: NewTodo) => Promise<string>;
+  toggleTodo: (id: string) => Promise<void>;
+  updateTodo: (id: string, text: string, tags: string[]) => Promise<void>;
   deleteTodo: (id: string) => Promise<void>;
-  filterBy: FilterType;
-  setFilterBy: (filter: FilterType) => void;
+  uniqueTags: string[];
 }
 
+// Utworzenie kontekstu
 const TodoContext = createContext<TodoContextType | undefined>(undefined);
 
-export function useTodos() {
+/**
+ * Hook do wykorzystania kontekstu zadań w komponentach
+ * Zapewnia dostęp do funkcji zarządzania zadaniami
+ */
+export const useTodos = () => {
   const context = useContext(TodoContext);
-  if (context === undefined) {
-    throw new Error("useTodos must be used within a TodoProvider");
+  if (!context) {
+    throw new Error("useTodos musi być używany wewnątrz TodoProvider");
   }
   return context;
-}
+};
 
-export function TodoProvider({ children }: { children: React.ReactNode }) {
+/**
+ * Komponent zapewniający kontekst zadań dla aplikacji
+ * Zarządza stanem zadań, ich filtrowaniem i operacjami CRUD
+ */
+export const TodoProvider = ({ children }: { children: ReactNode }) => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filterBy, setFilterBy] = useState<FilterType>("all");
+  const [filter, setFilter] = useState<string>("all");
+  const [tagFilter, setTagFilter] = useState<string | null>(null);
+
   const { user } = useAuth();
 
-  // Pobierz zadania użytkownika z Firestore
+  /**
+   * Efekt odpowiedzialny za pobieranie zadań użytkownika z Firebase
+   * Uruchamiany przy zmianie użytkownika
+   */
   useEffect(() => {
-    if (!user) {
-      setTodos([]);
-      setLoading(false);
-      return;
-    }
+    const fetchTodos = async () => {
+      if (!user) {
+        setTodos([]);
+        setLoading(false);
+        return;
+      }
 
-    setLoading(true);
-    setError(null);
+      setLoading(true);
+      try {
+        const q = query(
+          collection(db, "todos"),
+          where("userId", "==", user.uid),
+          orderBy("createdAt", "desc")
+        );
 
-    try {
-      // Utwórz zapytanie do kolekcji todos, filtrując po userId
-      const todosQuery = query(
-        collection(db, "todos"),
-        where("userId", "==", user.uid),
-        orderBy("createdAt", "desc")
-      );
+        const unsubscribe = onSnapshot(
+          q,
+          (querySnapshot) => {
+            const todoList: Todo[] = [];
+            querySnapshot.forEach((doc) => {
+              const data = doc.data();
+              todoList.push({
+                id: doc.id,
+                text: data.text,
+                completed: data.completed,
+                createdAt: data.createdAt,
+                tags: data.tags || [],
+                userId: data.userId,
+              });
+            });
+            setTodos(todoList);
+            setError(null);
+            setLoading(false);
+          },
+          (error) => {
+            setError("Nie udało się pobrać zadań. Spróbuj ponownie później.");
+            setLoading(false);
+          }
+        );
 
-      // Nasłuchuj na zmiany w kolekcji
-      const unsubscribe = onSnapshot(
-        todosQuery,
-        (snapshot) => {
-          const todosData = snapshot.docs.map((doc) => {
-            const data = doc.data();
-            return {
-              id: doc.id,
-              title: data.title,
-              description: data.description,
-              completed: data.completed,
-              createdAt: data.createdAt.toDate(),
-              userId: data.userId,
-              tags: data.tags || [],
-            } as Todo;
-          });
+        return () => unsubscribe();
+      } catch (error) {
+        setError("Wystąpił błąd podczas łączenia z bazą danych.");
+        setLoading(false);
+      }
+    };
 
-          setTodos(todosData);
-          setLoading(false);
-        },
-        (err) => {
-          console.error("Błąd podczas pobierania zadań:", err);
-          setError("Wystąpił błąd podczas pobierania zadań");
-          setLoading(false);
-        }
-      );
-
-      // Zwróć funkcję czyszczącą, która zostanie wywołana przy odmontowaniu komponentu
-      return () => unsubscribe();
-    } catch (err) {
-      console.error("Błąd podczas konfigurowania nasłuchiwania:", err);
-      setError("Wystąpił błąd podczas konfigurowania nasłuchiwania");
-      setLoading(false);
-    }
+    fetchTodos();
   }, [user]);
 
-  // Dodaj nowe zadanie
+  /**
+   * Funkcja dodająca nowe zadanie do bazy danych i stanu aplikacji
+   * @param newTodo - dane nowego zadania
+   */
   const addTodo = async (newTodo: NewTodo) => {
+    if (!user) {
+      throw new Error("Musisz być zalogowany, aby dodać zadanie");
+    }
+
+    try {
+      // Generowanie tymczasowego ID dla optimistic update
+      const tempId = uuidv4();
+
+      // Tworzymy tymczasowy obiekt zadania dla optymistycznej aktualizacji UI
+      const tempTodo: Todo = {
+        id: tempId,
+        text: newTodo.text,
+        completed: false,
+        createdAt: { seconds: Date.now() / 1000, nanoseconds: 0 },
+        tags: newTodo.tags || [],
+        userId: user.uid,
+      };
+
+      // Optymistyczna aktualizacja UI
+      setTodos((prevTodos) => [tempTodo, ...prevTodos]);
+
+      // Faktyczne dodanie zadania do Firestore (w tle)
+      try {
+        const docRef = await addDoc(collection(db, "todos"), {
+          text: newTodo.text,
+          completed: false,
+          createdAt: serverTimestamp(),
+          tags: newTodo.tags || [],
+          userId: user.uid,
+        });
+
+        // Aktualizacja listy zadań zastępując tymczasowe ID rzeczywistym ID
+        setTodos((prevTodos) =>
+          prevTodos.map((todo) =>
+            todo.id === tempId ? { ...todo, id: docRef.id } : todo
+          )
+        );
+
+        // Zwracamy ID dodanego zadania
+        return docRef.id;
+      } catch (error) {
+        // Cofnięcie optymistycznej aktualizacji w przypadku błędu
+        setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== tempId));
+        throw error;
+      }
+    } catch (error) {
+      setError("Nie udało się dodać zadania. Spróbuj ponownie.");
+      throw error;
+    }
+  };
+
+  /**
+   * Funkcja zmieniająca status ukończenia zadania
+   * @param id - identyfikator zadania
+   */
+  const toggleTodo = async (id: string) => {
     if (!user) return;
 
     try {
-      await addDoc(collection(db, "todos"), {
-        title: newTodo.title,
-        description: newTodo.description || "",
-        completed: false,
-        createdAt: new Date(),
-        userId: user.uid,
-        tags: newTodo.tags || [],
+      const todoToToggle = todos.find((todo) => todo.id === id);
+      if (!todoToToggle) return;
+
+      // Optymistyczna aktualizacja UI
+      setTodos((prevTodos) =>
+        prevTodos.map((todo) =>
+          todo.id === id ? { ...todo, completed: !todo.completed } : todo
+        )
+      );
+
+      // Aktualizacja w bazie danych
+      await updateDoc(doc(db, "todos", id), {
+        completed: !todoToToggle.completed,
       });
-    } catch (err) {
-      console.error("Błąd podczas dodawania zadania:", err);
-      setError("Wystąpił błąd podczas dodawania zadania");
+    } catch (error) {
+      setError("Nie udało się zmienić stanu zadania. Spróbuj ponownie.");
+
+      // Cofnięcie optymistycznej aktualizacji w przypadku błędu
+      setTodos((prevTodos) =>
+        prevTodos.map((todo) =>
+          todo.id === id ? { ...todo, completed: !todo.completed } : todo
+        )
+      );
     }
   };
 
-  // Przełącz status ukończenia zadania
-  const toggleComplete = async (id: string) => {
+  /**
+   * Funkcja aktualizująca dane zadania
+   * @param id - identyfikator zadania do aktualizacji
+   * @param text - nowy tytuł zadania
+   * @param tags - nowa lista etykiet przypisanych do zadania
+   */
+  const updateTodo = async (id: string, text: string, tags: string[]) => {
+    if (!user) return;
+
     try {
-      const todoRef = doc(db, "todos", id);
-      const todoToUpdate = todos.find((todo) => todo.id === id);
-
-      if (todoToUpdate) {
-        await updateDoc(todoRef, {
-          completed: !todoToUpdate.completed,
-        });
-      }
-    } catch (err) {
-      console.error("Błąd podczas aktualizacji statusu zadania:", err);
-      setError("Wystąpił błąd podczas aktualizacji statusu zadania");
+      await updateDoc(doc(db, "todos", id), {
+        text,
+        tags,
+      });
+    } catch (error) {
+      setError("Nie udało się zaktualizować zadania. Spróbuj ponownie.");
     }
   };
 
-  // Aktualizuj zadanie
-  const updateTodo = async (id: string, data: Partial<Todo>) => {
-    try {
-      const todoRef = doc(db, "todos", id);
-      await updateDoc(todoRef, data);
-    } catch (err) {
-      console.error("Błąd podczas aktualizacji zadania:", err);
-      setError("Wystąpił błąd podczas aktualizacji zadania");
-    }
-  };
-
-  // Usuń zadanie
+  /**
+   * Funkcja usuwająca zadanie
+   * @param id - identyfikator zadania do usunięcia
+   */
   const deleteTodo = async (id: string) => {
+    if (!user) return;
+
+    let todoToDelete: Todo | undefined;
+
     try {
-      const todoRef = doc(db, "todos", id);
-      await deleteDoc(todoRef);
-    } catch (err) {
-      console.error("Błąd podczas usuwania zadania:", err);
-      setError("Wystąpił błąd podczas usuwania zadania");
+      // Optymistyczna aktualizacja UI
+      todoToDelete = todos.find((todo) => todo.id === id);
+      setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
+
+      // Usuwanie z bazy danych
+      await deleteDoc(doc(db, "todos", id));
+    } catch (error) {
+      setError("Nie udało się usunąć zadania. Spróbuj ponownie.");
+
+      // Cofnięcie optymistycznej aktualizacji w przypadku błędu
+      if (todoToDelete) {
+        setTodos((prevTodos) => [...prevTodos, todoToDelete as Todo]);
+      }
     }
   };
 
-  // Filtrowane zadania
+  // Obliczenie unikatowych tagów z wszystkich zadań
+  const uniqueTags = Array.from(
+    new Set(todos.flatMap((todo) => todo.tags))
+  ).filter(Boolean);
+
+  // Filtrowanie zadań
   const filteredTodos = todos.filter((todo) => {
-    if (filterBy === "all") return true;
-    if (filterBy === "active") return !todo.completed;
-    if (filterBy === "completed") return todo.completed;
-    return true;
+    // Filtrowanie po stanie (wszystkie/aktywne/ukończone)
+    const statusFilter =
+      filter === "all" ||
+      (filter === "active" && !todo.completed) ||
+      (filter === "completed" && todo.completed);
+
+    // Filtrowanie po tagu
+    const hasTag = !tagFilter || todo.tags.includes(tagFilter);
+
+    return statusFilter && hasTag;
   });
 
+  // Obiekt wartości kontekstu
   const value = {
     todos: filteredTodos,
     loading,
     error,
+    filter,
+    setFilter,
+    tagFilter,
+    setTagFilter,
     addTodo,
-    toggleComplete,
+    toggleTodo,
     updateTodo,
     deleteTodo,
-    filterBy,
-    setFilterBy,
+    uniqueTags,
   };
 
   return <TodoContext.Provider value={value}>{children}</TodoContext.Provider>;
-}
-
-export type { Todo, NewTodo, FilterType };
+};

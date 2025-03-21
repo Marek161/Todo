@@ -14,130 +14,172 @@ import {
   onAuthStateChanged,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  updateProfile,
+  AuthError,
+  UserCredential,
+  GoogleAuthProvider,
+  sendPasswordResetEmail,
 } from "firebase/auth";
-import { auth, googleProvider } from "../utils/firebase";
+import { auth, googleProvider } from "@/lib/firebase";
 
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signInWithGoogle: () => Promise<void>;
-  signOut: () => Promise<void>;
-  signUp: (
-    email: string,
-    password: string,
-    displayName: string
-  ) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
   error: string | null;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<UserCredential>;
+  signOut: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
+  handleAuthError: (error: unknown) => string;
+  signUpWithEmail: (email: string, password: string) => Promise<UserCredential>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function useAuth() {
+export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
+  if (!context) {
+    throw new Error("useAuth musi być używany wewnątrz AuthProvider");
   }
   return context;
-}
+};
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export function AuthProvider({ children }: AuthProviderProps) {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Monitorowanie stanu uwierzytelnienia
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
+      console.log(
+        "AuthContext - zmiana stanu uwierzytelnienia:",
+        user ? `zalogowany (${user.email})` : "niezalogowany"
+      );
     });
 
     return () => unsubscribe();
   }, []);
 
-  const signInWithGoogle = async () => {
+  /**
+   * Logowanie za pomocą emaila i hasła
+   */
+  const signIn = async (email: string, password: string) => {
     try {
-      setError(null);
-      await signInWithPopup(auth, googleProvider);
+      await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
-      console.error("Błąd logowania przez Google:", error);
-      setError("Wystąpił błąd podczas logowania przez Google");
+      console.error("Błąd logowania:", error);
+      setError(handleAuthError(error));
+      throw error;
     }
   };
 
+  /**
+   * Rejestracja za pomocą emaila i hasła
+   */
+  const signUp = async (
+    email: string,
+    password: string
+  ): Promise<UserCredential> => {
+    try {
+      const result = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      return result;
+    } catch (error) {
+      console.error("Błąd rejestracji:", error);
+      setError(handleAuthError(error));
+      throw error;
+    }
+  };
+
+  /**
+   * Wylogowanie
+   */
   const signOut = async () => {
     try {
       await firebaseSignOut(auth);
     } catch (error) {
       console.error("Błąd wylogowania:", error);
-      setError("Wystąpił błąd podczas wylogowania");
+      setError(handleAuthError(error));
+      throw error;
     }
   };
 
-  const signUp = async (
-    email: string,
-    password: string,
-    displayName: string
-  ) => {
+  /**
+   * Logowanie za pomocą Google
+   */
+  const signInWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
     try {
-      setError(null);
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-
-      // Aktualizacja profilu użytkownika z displayName
-      if (userCredential.user) {
-        await updateProfile(userCredential.user, {
-          displayName,
-        });
-        // Odśwież obiekt użytkownika, aby zawierał zaktualizowane dane
-        setUser({ ...userCredential.user });
-      }
-    } catch (error: any) {
-      console.error("Błąd rejestracji:", error);
-      if (error.code === "auth/email-already-in-use") {
-        setError("Ten adres email jest już używany");
-      } else if (error.code === "auth/weak-password") {
-        setError("Hasło jest zbyt słabe");
-      } else {
-        setError("Wystąpił błąd podczas rejestracji");
-      }
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error("Błąd logowania przez Google:", error);
+      setError(handleAuthError(error));
+      throw error;
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  /**
+   * Resetowanie hasła
+   */
+  const resetPassword = async (email: string) => {
     try {
-      setError(null);
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch (error: any) {
-      console.error("Błąd logowania:", error);
-      if (
-        error.code === "auth/user-not-found" ||
-        error.code === "auth/wrong-password"
-      ) {
-        setError("Nieprawidłowy email lub hasło");
-      } else {
-        setError("Wystąpił błąd podczas logowania");
-      }
+      await sendPasswordResetEmail(auth, email);
+    } catch (error) {
+      console.error("Błąd resetowania hasła:", error);
+      setError(handleAuthError(error));
+      throw error;
+    }
+  };
+
+  // Obsługa błędów uwierzytelniania
+  const handleAuthError = (error: unknown): string => {
+    const firebaseError = error as AuthError;
+    const errorCode = firebaseError.code;
+
+    switch (errorCode) {
+      case "auth/email-already-in-use":
+        return "Ten adres email jest już używany przez inne konto.";
+      case "auth/invalid-email":
+        return "Nieprawidłowy adres email.";
+      case "auth/user-disabled":
+        return "To konto zostało wyłączone.";
+      case "auth/user-not-found":
+        return "Nie znaleziono użytkownika z tym adresem email.";
+      case "auth/wrong-password":
+        return "Niepoprawne hasło.";
+      case "auth/weak-password":
+        return "Hasło jest za słabe. Użyj silniejszego hasła.";
+      case "auth/popup-closed-by-user":
+        return "Logowanie zostało przerwane. Spróbuj ponownie.";
+      case "auth/cancelled-popup-request":
+        return "Logowanie zostało przerwane. Spróbuj ponownie.";
+      case "auth/popup-blocked":
+        return "Okno logowania zostało zablokowane. Włącz wyskakujące okienka dla tej strony.";
+      default:
+        return "Wystąpił błąd podczas uwierzytelniania. Spróbuj ponownie później.";
     }
   };
 
   const value = {
     user,
     loading,
-    signInWithGoogle,
-    signOut,
-    signUp,
-    signIn,
     error,
+    signIn,
+    signUp,
+    signOut,
+    signInWithGoogle,
+    resetPassword,
+    handleAuthError,
+    signUpWithEmail: signUp,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
+};

@@ -30,15 +30,4 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
-
-# IDE
-.idea/
-.vscode/
-
-# Firebase
-# Uncomment this if you want to ignore firebase.ts with your API keys
-# /src/utils/firebase.ts
-
-# Temporary files
-/temp-project/
+next-env.d.ts 

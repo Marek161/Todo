@@ -1,0 +1,385 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definicja właściwości --angle dla animacji gradientowej obwódki */
+@property --angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+:root {
+  --foreground-rgb: 15, 23, 42;
+  --background-start-rgb: 248, 250, 252;
+  --background-end-rgb: 241, 245, 249;
+}
+
+.dark {
+  --foreground-rgb: 226, 232, 240;
+  --background-start-rgb: 15, 23, 42;
+  --background-end-rgb: 30, 41, 59;
+}
+
+@layer base {
+  body {
+    color: rgb(var(--foreground-rgb));
+    background: linear-gradient(
+      to bottom,
+      rgb(var(--background-start-rgb)),
+      rgb(var(--background-end-rgb))
+    );
+    min-height: 100vh;
+  }
+}
+
+@layer utilities {
+  .animation-delay-500 {
+    animation-delay: 500ms;
+  }
+  .animation-delay-1000 {
+    animation-delay: 1000ms;
+  }
+  .animation-delay-1500 {
+    animation-delay: 1500ms;
+  }
+  .animation-delay-2000 {
+    animation-delay: 2000ms;
+  }
+  .animation-delay-3000 {
+    animation-delay: 3000ms;
+  }
+  .animation-delay-4000 {
+    animation-delay: 4000ms;
+  }
+  .bg-300\% {
+    background-size: 300% 300%;
+  }
+}
+
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animate-gradient {
+  animation: gradient 8s ease infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+
+/* Gradient border styles */
+.gradient-border {
+  position: relative;
+  border-radius: 10px;
+  padding: 0;
+  z-index: 10;
+  overflow: hidden;
+}
+
+.gradient-border::before,
+.gradient-border::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  height: calc(100% + 8px);
+  width: calc(100% + 8px);
+  background-image: conic-gradient(
+    from var(--angle),
+    #ff4545,
+    #00ff99,
+    #006aff,
+    #ff0095,
+    #ff4545
+  );
+  border-radius: 12px;
+  z-index: -1;
+  animation: spin 4s linear infinite;
+}
+
+.gradient-border::before {
+  filter: blur(12px);
+  opacity: 0.7;
+}
+
+.gradient-border-purple::before,
+.gradient-border-purple::after {
+  background-image: conic-gradient(
+    from var(--angle),
+    #8b5cf6,
+    #a855f7,
+    #d946ef,
+    #ec4899,
+    #8b5cf6
+  );
+  box-shadow: 0 0 20px 5px rgba(139, 92, 246, 0.4);
+}
+
+.gradient-border-blue::before,
+.gradient-border-blue::after {
+  background-image: conic-gradient(
+    from var(--angle),
+    #3b82f6,
+    #06b6d4,
+    #0ea5e9,
+    #38bdf8,
+    #3b82f6
+  );
+  box-shadow: 0 0 20px 5px rgba(59, 130, 246, 0.4);
+}
+
+.gradient-border-red::before,
+.gradient-border-red::after {
+  background-image: conic-gradient(
+    from var(--angle),
+    #ef4444,
+    #f43f5e,
+    #e11d48,
+    #fb7185,
+    #ef4444
+  );
+  box-shadow: 0 0 20px 5px rgba(239, 68, 68, 0.4);
+}
+
+/* Keyframe animacja obracania kąta dla gradientu */
+@keyframes spin {
+  from {
+    --angle: 0deg;
+  }
+  to {
+    --angle: 360deg;
+  }
+}
+
+.shadow-glow {
+  box-shadow: 0 0 25px 5px rgba(99, 102, 241, 0.3);
+}
+
+.shadow-glow-purple {
+  box-shadow: 0 0 25px 5px rgba(147, 51, 234, 0.3);
+}
+
+/* Style modyfikacji dla trybu ciemnego */
+.dark .gradient-border-content {
+  background: #1f2937;
+}
+
+.dark .shadow-glow {
+  box-shadow: 0 0 25px 5px rgba(99, 102, 241, 0.2);
+}
+
+.dark .shadow-glow-purple {
+  box-shadow: 0 0 25px 5px rgba(147, 51, 234, 0.2);
+}
+
+@layer components {
+  .btn-primary {
+    @apply w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white 
+      bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500;
+  }
+
+  .btn-outline {
+    @apply w-full py-2 px-4 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm text-sm font-medium 
+      text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 
+      focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800;
+  }
+
+  .input {
+    @apply block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm 
+      focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white;
+  }
+
+  /* Nowe style dla kart z gradientowymi obramowaniami */
+  .gradient-border {
+    @apply relative rounded-lg overflow-hidden;
+  }
+
+  .gradient-border::before {
+    content: "";
+    @apply absolute -inset-1 bg-gradient-to-r rounded-lg opacity-75 blur transition duration-300;
+  }
+
+  .gradient-border-blue::before {
+    @apply from-blue-400 to-indigo-600 animate-gradient bg-300%;
+  }
+
+  .gradient-border-purple::before {
+    @apply from-purple-400 to-pink-600 animate-gradient bg-300%;
+  }
+
+  .gradient-border-green::before {
+    @apply from-green-400 to-teal-600 animate-gradient bg-300%;
+  }
+
+  .gradient-border-content {
+    @apply relative bg-white dark:bg-gray-800 rounded-lg p-6 z-10;
+  }
+}
+
+/* Animacja bordera snake */
+.snake-border {
+  position: relative;
+  border-radius: 0.5rem;
+  padding: 0.15rem;
+  transition: transform 0.3s ease;
+}
+
+.snake-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 0.5rem;
+  padding: 0.15rem;
+  background: conic-gradient(
+    from var(--angle),
+    transparent 0%,
+    transparent 40%,
+    currentColor 40%,
+    currentColor 60%,
+    transparent 60%,
+    transparent 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation:
+    snake-border-rotate 4s linear infinite,
+    snake-border-fade 2s ease-in-out infinite alternate;
+  z-index: 1;
+}
+
+.snake-border-purple-glow {
+  position: absolute;
+  inset: 0;
+  filter: blur(15px) opacity(0.7);
+  background: linear-gradient(45deg, #9333ea, #7c3aed, #8b5cf6);
+}
+
+.snake-border-blue-glow {
+  position: absolute;
+  inset: 0;
+  filter: blur(15px) opacity(0.7);
+  background: linear-gradient(45deg, #3b82f6, #2563eb, #60a5fa);
+}
+
+.snake-border-red-glow {
+  position: absolute;
+  inset: 0;
+  filter: blur(15px) opacity(0.7);
+  background: linear-gradient(45deg, #ef4444, #dc2626, #f87171);
+}
+
+/* Keyframes for snake borders */
+@keyframes snake-border-rotate {
+  0% {
+    --angle: 0deg;
+  }
+  100% {
+    --angle: 360deg;
+  }
+}
+
+@keyframes snake-border-fade {
+  0% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Defining colors for different border types */
+.snake-border-purple,
+.snake-border-blue,
+.snake-border-red {
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.snake-border-purple::before {
+  color: rgb(147, 51, 234);
+}
+
+.snake-border-blue::before {
+  color: rgb(59, 130, 246);
+}
+
+.snake-border-red::before {
+  color: rgb(239, 68, 68);
+}
+
+.snake-border-purple:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px -5px rgba(147, 51, 234, 0.5);
+}
+
+.snake-border-blue:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+}
+
+.snake-border-red:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px -5px rgba(239, 68, 68, 0.5);
+}

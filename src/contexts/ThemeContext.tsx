@@ -1,10 +1,6 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from "react";
+"use client";
+
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 type Theme = "light" | "dark";
 
@@ -15,57 +11,70 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export function useTheme() {
-  const context = useContext(ThemeContext);
-  if (context === undefined) {
-    throw new Error("useTheme must be used within a ThemeProvider");
-  }
-  return context;
-}
-
-interface ThemeProviderProps {
-  children: ReactNode;
-}
-
-export function ThemeProvider({ children }: ThemeProviderProps) {
+export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [theme, setTheme] = useState<Theme>("light");
+  const [mounted, setMounted] = useState(false);
 
-  // Sprawdź preferencje użytkownika przy pierwszym renderowaniu
-  useEffect(() => {
-    // Sprawdź, czy użytkownik ma zapisany motyw w localStorage
-    const savedTheme = localStorage.getItem("theme") as Theme | null;
-
-    // Jeśli tak, użyj go
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.documentElement.classList.toggle("dark", savedTheme === "dark");
+  // Metoda do aktualizacji klasy dla dark mode
+  const updateThemeClass = (newTheme: Theme) => {
+    if (newTheme === "dark") {
+      document.documentElement.classList.add("dark");
     } else {
-      // Jeśli nie, sprawdź preferencje systemowe
+      document.documentElement.classList.remove("dark");
+    }
+  };
+
+  // Metoda do zapisania motywu w localStorage
+  const saveThemeToStorage = (newTheme: Theme) => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("theme", newTheme);
+    }
+  };
+
+  // Inicjalizacja tematu z localStorage
+  useEffect(() => {
+    // Sprawdź, czy kod jest wykonywany po stronie klienta
+    if (typeof window !== "undefined") {
+      const savedTheme = localStorage.getItem("theme") as Theme | null;
       const prefersDark = window.matchMedia(
         "(prefers-color-scheme: dark)"
       ).matches;
-      setTheme(prefersDark ? "dark" : "light");
-      document.documentElement.classList.toggle("dark", prefersDark);
+
+      // Zastosuj zapisany motyw lub preferencję systemu
+      const initialTheme = savedTheme || (prefersDark ? "dark" : "light");
+      setTheme(initialTheme);
+      updateThemeClass(initialTheme);
+
+      // Oznacz, że komponent został zamontowany
+      setMounted(true);
     }
   }, []);
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
-
-    // Zapisz preferencje w localStorage
-    localStorage.setItem("theme", newTheme);
-
-    // Zastosuj klasę dark do elementu html
-    document.documentElement.classList.toggle("dark");
+    updateThemeClass(newTheme);
+    saveThemeToStorage(newTheme);
   };
 
-  const value = {
-    theme,
-    toggleTheme,
-  };
+  // Renderuj tylko po zamontowaniu, aby uniknąć różnic między SSR a klientem
+  if (!mounted) {
+    return null; // Nie renderuj nic podczas SSR
+  }
 
   return (
-    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
   );
-}
+};
+
+export const useTheme = (): ThemeContextType => {
+  const context = useContext(ThemeContext);
+  if (context === undefined) {
+    throw new Error("useTheme must be used within a ThemeProvider");
+  }
+  return context;
+};
