@@ -3,7 +3,7 @@
 
 Aplikacja do zarządzania zadaniami z możliwością dodawania, filtrowania i kategoryzowania zadań za pomocą etykiet.
 
-### ➡️  [LINK DO STRONY]([https://marek161.github.io/jwnailstudio/](https://todo-9hy55tk72-marek161s-projects.vercel.app/))  ⬅️
+### ➡️  [LINK DO STRONY](https://todo-9hy55tk72-marek161s-projects.vercel.app)  ⬅️
 
 ![todo1](https://github.com/user-attachments/assets/94451dee-0bbe-4d81-8b43-5f8ce46262e2)
 ![todo2](https://github.com/user-attachments/assets/bb81775a-b0e4-43ad-88d6-d0e1c30ade1d)
