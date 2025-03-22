@@ -16,26 +16,37 @@ import {
 import { FcGoogle } from "react-icons/fc";
 import Navbar from "@/components/Navbar";
 
+/**
+ * Strona uwierzytelniania użytkownika - obsługuje logowanie, rejestrację i resetowanie hasła.
+ * Zawiera formularze dla każdego z tych procesów oraz obsługę błędów.
+ */
 export default function AuthPage() {
+  // Stan dla pól formularza
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLogin, setIsLogin] = useState(true);
-  const [isResetMode, setIsResetMode] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [localError, setLocalError] = useState("");
-  const [resetSuccess, setResetSuccess] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [isLogin, setIsLogin] = useState(true); // Przełącznik między logowaniem a rejestracją
+  const [isResetMode, setIsResetMode] = useState(false); // Tryb resetowania hasła
+  const [loading, setLoading] = useState(false); // Stan ładowania dla przycisków
+  const [localError, setLocalError] = useState(""); // Lokalny stan błędu
+  const [resetSuccess, setResetSuccess] = useState(false); // Informacja o wysłaniu linku resetującego
+  const [showPassword, setShowPassword] = useState(false); // Kontrola widoczności hasła
 
+  // Funkcje uwierzytelniania z kontekstu
   const {
     signInWithEmail,
-    signUp,
+    signUpWithEmail,
     signInWithGoogle,
     resetPassword,
     error,
     clearError,
   } = useAuth();
+
   const router = useRouter();
 
+  /**
+   * Obsługuje wysłanie formularza logowania/rejestracji/resetowania hasła
+   * @param {React.FormEvent} e - Zdarzenie formularza
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
@@ -51,7 +62,7 @@ export default function AuthPage() {
         await signInWithEmail(email, password);
         router.push("/dashboard");
       } else {
-        await signUp(email, password);
+        await signUpWithEmail(email, password);
         router.push("/dashboard");
       }
     } catch (error) {
@@ -61,6 +72,9 @@ export default function AuthPage() {
     }
   };
 
+  /**
+   * Obsługuje logowanie przez Google
+   */
   const handleGoogleLogin = async () => {
     clearError();
     setLocalError("");
@@ -77,6 +91,9 @@ export default function AuthPage() {
     }
   };
 
+  /**
+   * Przełącza między trybem logowania/rejestracji a trybem resetowania hasła
+   */
   const toggleResetMode = () => {
     setIsResetMode(!isResetMode);
     clearError();
@@ -84,6 +101,9 @@ export default function AuthPage() {
     setResetSuccess(false);
   };
 
+  /**
+   * Przełącza widoczność hasła w polu formularza
+   */
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };

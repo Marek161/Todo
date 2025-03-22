@@ -7,10 +7,18 @@ import { FiLogIn, FiCheckCircle, FiClock, FiCheckSquare } from "react-icons/fi";
 import Navbar from "@/components/Navbar";
 import { useEffect, useState } from "react";
 
+/**
+ * Strona główna aplikacji TodoApp
+ * Prezentuje podstawowe informacje o aplikacji i jej funkcjach
+ * Zawiera sekcję Hero oraz listę zalet i funkcji
+ */
 export default function HomePage() {
   const { user } = useAuth();
   const [isVisible, setIsVisible] = useState(false);
 
+  /**
+   * Efekt uruchamiający animacje po załadowaniu strony
+   */
   useEffect(() => {
     // Uruchom animację po załadowaniu strony
     setIsVisible(true);

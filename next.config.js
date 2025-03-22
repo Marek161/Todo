@@ -16,6 +16,19 @@ const nextConfig = {
         ignored: /node_modules/,
       };
     }
+
+    // Dodajemy babel-loader, aby obsłużyć pliki, które mogą powodować błąd webpacka
+    config.module.rules.push({
+      test: /\.js$/,
+      exclude: /node_modules/,
+      use: {
+        loader: "babel-loader",
+        options: {
+          presets: ["next/babel"], // Korzystaj z domyślnych presetów Next.js
+        },
+      },
+    });
+
     return config;
   },
 };

@@ -4,18 +4,18 @@ import React from "react";
 import Link from "next/link";
 import { FiMoon, FiSun, FiLogIn, FiLogOut, FiUser } from "react-icons/fi";
 import { useAuth } from "@/contexts/AuthContext";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 
 /**
  * Komponent nawigacyjny aplikacji
  * Zawiera logo, przełącznik motywu oraz przyciski uwierzytelniania
  */
 export const Navbar: React.FC = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [isDarkMode, setIsDarkMode] = React.useState(false);
 
-  // Obsługa trybu ciemnego za pomocą preferencji systemu i localStorage
+  /**
+   * Efekt inicjalizujący tryb ciemny na podstawie preferencji systemu i localStorage
+   */
   React.useEffect(() => {
     // Sprawdź preferencje zapisane w localStorage
     const savedTheme = localStorage.getItem("theme");
@@ -32,6 +32,10 @@ export const Navbar: React.FC = () => {
     }
   }, []);
 
+  /**
+   * Przełącza motyw między jasnym a ciemnym
+   * Aktualizuje klasę na elemencie html oraz zapisuje preferencję w localStorage
+   */
   const toggleTheme = () => {
     if (isDarkMode) {
       document.documentElement.classList.remove("dark");
@@ -44,9 +48,12 @@ export const Navbar: React.FC = () => {
     }
   };
 
+  /**
+   * Obsługuje wylogowanie użytkownika
+   */
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      await signOut();
     } catch (error) {
       console.error("Błąd podczas wylogowywania:", error);
     }
